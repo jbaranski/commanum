@@ -1,0 +1,43 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Zig Program",
+            "type": "lldb",
+            // The request type is 'launch' to start the executable
+            "request": "launch",
+
+            // --- Program and Executable ---
+            // This is the path to the executable file you compiled.
+            // Adjust 'commanum' if your output name is different.
+            // Assumes you compiled with: zig build-exe -femit-bin=commanum src/main.zig
+            "program": "${workspaceFolder}/zig-out/bin/commanum",
+
+            // --- Command-Line Arguments ---
+            // The arguments to pass to your main function (std.os.argv).
+            // This is crucial for your commanum program.
+            "args": ["1234567890"],
+
+            // --- Build Step (Optional but Recommended) ---
+            // This runs the build command BEFORE launching the debugger.
+            "preRunCommands": [
+                // Use the 'shell' command to execute the build.
+                // This command is often needed for Zig compilation.
+                "shell zig build"
+            ],
+
+            // --- Debugging Setup ---
+            // Sets the current working directory for the executable
+            "cwd": "${workspaceFolder}",
+            // Stop at the beginning of the program (usually main)
+            "stopOnEntry": true,
+
+            // --- Recommended Zig/LLDB Settings ---
+            // The "zig.lldbInitCommands" setting from the Zig extension is usually better,
+            // but this ensures symbols are loaded correctly.
+            "initCommands": [
+                "settings set target.disable-aslr false"
+            ]
+        }
+    ]
+}
