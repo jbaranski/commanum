@@ -9,6 +9,7 @@ fn formatWithCommas(
     const num_comma: u8 = (num_len - 1) / 3;
     const final_len: u8 = num_len + num_comma;
 
+    // TODO: remove this check and ensure this can never happen with validation/tests
     if (final_len > buffer.len) return error.BufferTooSmall;
 
     var str_idx: u8 = num_len;
@@ -25,6 +26,11 @@ fn formatWithCommas(
         dest_idx -= 1;
         str_idx -= 1;
 
+        // TODO: support float
+        if (!std.ascii.isDigit(num_str[str_idx])) {
+            return error.InvalidInput;
+        }
+
         buffer[dest_idx] = num_str[str_idx];
         digit_count += 1;
     }
@@ -34,13 +40,21 @@ fn formatWithCommas(
 
 pub fn main() !void {
     if (std.os.argv.len < 2) {
-        std.debug.print("Error: Please provide an argument.\n", .{});
+        std.debug.print("Error: Missing argument.\n", .{});
+        return;
+    }
+    if (std.os.argv.len > 2) {
+        std.debug.print("Error: Too many arguments.\n", .{});
         return;
     }
 
     const num_str: []const u8 = std.mem.span(std.os.argv[1]);
     var buffer: [MAX_LEN]u8 = undefined;
-    const formatted_slice = try formatWithCommas(num_str, &buffer);
+    const formatted_slice = formatWithCommas(num_str, &buffer) catch {
+        std.debug.print("Error: Please provide only digits\n", .{});
+        std.process.exit(1);
+    };
 
+    // TODO: support some kind of flag(s) that allow more verbose output
     std.debug.print("{s}\n", .{formatted_slice});
 }
