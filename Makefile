@@ -10,5 +10,36 @@ run-lua:
 install-lua:
 	cp lua/commanum.lua ~/.local/bin/commanum-lua
 
+# Performance test (basic)
 perf-lua:
 	cd lua && luajit perf_test.lua
+
+# Profiling options - see README.md for how to interpret results
+
+# Option 2: LuaJIT verbose JIT compilation info
+perf-lua-jv:
+	cd lua && luajit -jv perf_test.lua
+
+# Option 3: LuaJIT profiler (requires LuaJIT built with profiler support)
+perf-lua-jp:
+	cd lua && luajit -jp=vl perf_test.lua
+
+# Option 3b: LuaJIT profiler with flame graph output
+perf-lua-jp-flame:
+	cd lua && luajit -jp=F perf_test.lua > perf_flame.txt && echo "Flame graph data written to lua/perf_flame.txt"
+
+# Option 4: Valgrind massif heap profiler (Linux only)
+perf-lua-massif:
+	cd lua && valgrind --tool=massif --massif-out-file=massif.out luajit perf_test.lua && ms_print massif.out
+
+# Option 4b: Valgrind callgrind for call graph profiling
+perf-lua-callgrind:
+	cd lua && valgrind --tool=callgrind --callgrind-out-file=callgrind.out luajit perf_test.lua && echo "Use 'kcachegrind lua/callgrind.out' or 'callgrind_annotate lua/callgrind.out' to view"
+
+# Option 5: Memory tracking using collectgarbage (built into perf_test)
+perf-lua-mem:
+	cd lua && luajit -e "package.path='./?.lua;'..package.path" -e "require('perf_test_mem')"
+
+# Clean profiling artifacts
+clean-prof:
+	rm -f lua/massif.out lua/callgrind.out lua/perf_flame.txt
