@@ -27,7 +27,7 @@ local function formatWithCommas(num_str)
         end
     end
 
-    -- Build the formatted string from right to left using pre-sized array
+    -- Build the formatted string from right to left using pre-sized array of bytes
     local result = {}
     local str_idx = num_len
     local dest_idx = final_len
@@ -35,18 +35,18 @@ local function formatWithCommas(num_str)
 
     while str_idx > 0 do
         if digit_count == 3 then
-            result[dest_idx] = ","
+            result[dest_idx] = 44  -- ',' = 44
             dest_idx = dest_idx - 1
             digit_count = 0
         end
 
-        result[dest_idx] = num_str:sub(str_idx, str_idx)
+        result[dest_idx] = num_str:byte(str_idx)
         dest_idx = dest_idx - 1
         str_idx = str_idx - 1
         digit_count = digit_count + 1
     end
 
-    return table.concat(result)
+    return string.char(unpack(result))
 end
 
 -- Generate a random number string (Lua's math.random can't handle full u64 range directly)
