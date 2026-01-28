@@ -14,7 +14,7 @@ perf-zig:
 	zig build perf
 
 perf-lua:
-	cd lua && lua perf_test.lua
+	cd lua && luajit perf_test.lua && cd ../
 
 perf-all:
 	@echo "=== Zig Performance Test ===" && zig build perf && echo "" && echo "=== Lua Performance Test ===" && cd lua && lua perf_test.lua
