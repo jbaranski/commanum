@@ -1,5 +1,9 @@
-const std = @import("std");
 pub const MAX_LEN = 64;
+
+// Inline digit check to avoid std dependency in exported function
+inline fn isDigit(c: u8) bool {
+    return c >= '0' and c <= '9';
+}
 
 pub fn formatWithCommas(
     num_str: []const u8,
@@ -27,7 +31,7 @@ pub fn formatWithCommas(
         str_idx -= 1;
 
         // TODO: support float
-        if (!std.ascii.isDigit(num_str[str_idx])) {
+        if (!isDigit(num_str[str_idx])) {
             return error.InvalidInput;
         }
 
@@ -37,6 +41,8 @@ pub fn formatWithCommas(
 
     return buffer[0..@as(usize, final_len)];
 }
+
+const std = @import("std");
 
 pub fn main() !void {
     if (std.os.argv.len < 2) {

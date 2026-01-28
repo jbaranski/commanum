@@ -1,9 +1,9 @@
+const std = @import("std");
+
 // Import formatWithCommas from commanum module
 const commanum = @import("commanum");
 const formatWithCommas = commanum.formatWithCommas;
 const MAX_LEN = commanum.MAX_LEN;
-
-const std = @import("std");
 
 const NUM_ITERATIONS = 1_000_000;
 
