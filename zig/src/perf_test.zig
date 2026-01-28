@@ -1,10 +1,10 @@
 const std = @import("std");
 const time = std.time;
 
-// Import formatWithCommas from main module
-const main = @import("main.zig");
-const formatWithCommas = main.formatWithCommas;
-const MAX_LEN = main.MAX_LEN;
+// Import formatWithCommas from commanum module
+const commanum = @import("main.zig");
+const formatWithCommas = commanum.formatWithCommas;
+const MAX_LEN = commanum.MAX_LEN;
 
 const NUM_ITERATIONS = 1_000_000;
 
