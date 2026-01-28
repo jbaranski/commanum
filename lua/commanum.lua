@@ -1,5 +1,7 @@
 #!/usr/bin/env lua
 
+local unpack = table.unpack or unpack  -- Lua 5.2+ compatibility
+
 local M = {}
 
 local MAX_LEN = 64
