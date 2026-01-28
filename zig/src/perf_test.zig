@@ -1,19 +1,17 @@
-const std = @import("std");
-const time = std.time;
-const print = std.debug.print;
-
 // Import formatWithCommas from commanum module
 const commanum = @import("commanum");
 const formatWithCommas = commanum.formatWithCommas;
 const MAX_LEN = commanum.MAX_LEN;
 
+const std = @import("std");
+
 const NUM_ITERATIONS = 1_000_000;
 
 pub fn main() !void {
-    print("Zig Performance Test\n", .{});
-    print("====================\n", .{});
-    print("Iterations: {d}\n", .{NUM_ITERATIONS});
-    print("Range: 0 to {d} (max u64)\n\n", .{std.math.maxInt(u64)});
+    std.debug.print("Zig Performance Test\n", .{});
+    std.debug.print("====================\n", .{});
+    std.debug.print("Iterations: {d}\n", .{NUM_ITERATIONS});
+    std.debug.print("Range: 0 to {d} (max u64)\n\n", .{std.math.maxInt(u64)});
 
     // Initialize random number generator
     var prng = std.Random.DefaultPrng.init(blk: {
@@ -24,17 +22,17 @@ pub fn main() !void {
     const random = prng.random();
 
     // Pre-generate all random numbers to measure formatting time only
-    print("Generating {d} random numbers...\n", .{NUM_ITERATIONS});
-    const gen_start = time.nanoTimestamp();
+    std.debug.print("Generating {d} random numbers...\n", .{NUM_ITERATIONS});
+    const gen_start = std.time.nanoTimestamp();
 
     var numbers: [NUM_ITERATIONS]u64 = undefined;
     for (&numbers) |*n| {
         n.* = random.int(u64);
     }
 
-    const gen_end = time.nanoTimestamp();
+    const gen_end = std.time.nanoTimestamp();
     const gen_elapsed_ns: u64 = @intCast(gen_end - gen_start);
-    print("Generation time: {d:.3} ms\n\n", .{@as(f64, @floatFromInt(gen_elapsed_ns)) / 1_000_000.0});
+    std.debug.print("Generation time: {d:.3} ms\n\n", .{@as(f64, @floatFromInt(gen_elapsed_ns)) / 1_000_000.0});
 
     // Buffers for conversion
     var num_str_buf: [20]u8 = undefined; // max u64 is 20 digits
@@ -46,18 +44,18 @@ pub fn main() !void {
     var max_ns: u64 = 0;
     var successful: u64 = 0;
 
-    print("Running formatting benchmark...\n", .{});
+    std.debug.print("Running formatting benchmark...\n", .{});
 
-    const bench_start = time.nanoTimestamp();
+    const bench_start = std.time.nanoTimestamp();
 
     for (numbers) |num| {
         // Convert number to string
         const num_str = std.fmt.bufPrint(&num_str_buf, "{d}", .{num}) catch continue;
 
         // Time the formatWithCommas call
-        const start = time.nanoTimestamp();
+        const start = std.time.nanoTimestamp();
         const result = formatWithCommas(num_str, &format_buf);
-        const end = time.nanoTimestamp();
+        const end = std.time.nanoTimestamp();
 
         const elapsed: u64 = @intCast(end - start);
         total_format_ns += elapsed;
@@ -69,7 +67,7 @@ pub fn main() !void {
         } else |_| {}
     }
 
-    const bench_end = time.nanoTimestamp();
+    const bench_end = std.time.nanoTimestamp();
     const total_elapsed_ns: u64 = @intCast(bench_end - bench_start);
 
     // Calculate statistics
@@ -79,14 +77,14 @@ pub fn main() !void {
     const ops_per_sec: f64 = @as(f64, @floatFromInt(successful)) / (total_ms / 1000.0);
 
     // Print results
-    print("\nResults:\n", .{});
-    print("--------\n", .{});
-    print("Successful operations: {d} / {d}\n", .{ successful, NUM_ITERATIONS });
-    print("Total benchmark time:  {d:.3} ms\n", .{total_ms});
-    print("Format-only time:      {d:.3} ms\n", .{format_only_ms});
-    print("\nPer-operation statistics:\n", .{});
-    print("  Average: {d:.1} ns\n", .{avg_ns});
-    print("  Min:     {d} ns\n", .{min_ns});
-    print("  Max:     {d} ns\n", .{max_ns});
-    print("\nThroughput: {d:.0} ops/sec\n", .{ops_per_sec});
+    std.debug.print("\nResults:\n", .{});
+    std.debug.print("--------\n", .{});
+    std.debug.print("Successful operations: {d} / {d}\n", .{ successful, NUM_ITERATIONS });
+    std.debug.print("Total benchmark time:  {d:.3} ms\n", .{total_ms});
+    std.debug.print("Format-only time:      {d:.3} ms\n", .{format_only_ms});
+    std.debug.print("\nPer-operation statistics:\n", .{});
+    std.debug.print("  Average: {d:.1} ns\n", .{avg_ns});
+    std.debug.print("  Min:     {d} ns\n", .{min_ns});
+    std.debug.print("  Max:     {d} ns\n", .{max_ns});
+    std.debug.print("\nThroughput: {d:.0} ops/sec\n", .{ops_per_sec});
 }
