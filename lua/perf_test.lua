@@ -19,8 +19,12 @@ local function formatWithCommas(num_str)
         return nil, "BufferTooSmall"
     end
 
-    if not num_str:match("^%d+$") then
-        return nil, "InvalidInput"
+    -- Validate that all characters are digits (byte loop is faster than pattern matching)
+    for i = 1, num_len do
+        local b = num_str:byte(i)
+        if b < 48 or b > 57 then  -- '0' = 48, '9' = 57
+            return nil, "InvalidInput"
+        end
     end
 
     local result = {}
