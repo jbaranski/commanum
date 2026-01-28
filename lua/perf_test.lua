@@ -1,52 +1,15 @@
 #!/usr/bin/env lua
 
-local MAX_LEN = 64
+-- Import formatWithCommas from commanum module
+local commanum = require("commanum")
+local formatWithCommas = commanum.formatWithCommas
+
 local NUM_ITERATIONS = 1000000
 local MAX_U64 = 18446744073709551615  -- 2^64 - 1
 
 -- High-resolution timer (uses os.clock for CPU time)
 local function get_time_ns()
     return os.clock() * 1e9
-end
-
--- Format a numeric string with commas every 3 digits from the right
-local function formatWithCommas(num_str)
-    local num_len = #num_str
-    local num_comma = math.floor((num_len - 1) / 3)
-    local final_len = num_len + num_comma
-
-    if final_len > MAX_LEN then
-        return nil, "BufferTooSmall"
-    end
-
-    -- Validate that all characters are digits (byte loop is faster than pattern matching)
-    for i = 1, num_len do
-        local b = num_str:byte(i)
-        if b < 48 or b > 57 then  -- '0' = 48, '9' = 57
-            return nil, "InvalidInput"
-        end
-    end
-
-    -- Build the formatted string from right to left using pre-sized array of bytes
-    local result = {}
-    local str_idx = num_len
-    local dest_idx = final_len
-    local digit_count = 0
-
-    while str_idx > 0 do
-        if digit_count == 3 then
-            result[dest_idx] = 44  -- ',' = 44
-            dest_idx = dest_idx - 1
-            digit_count = 0
-        end
-
-        result[dest_idx] = num_str:byte(str_idx)
-        dest_idx = dest_idx - 1
-        str_idx = str_idx - 1
-        digit_count = digit_count + 1
-    end
-
-    return string.char(unpack(result))
 end
 
 -- Generate a random number string (Lua's math.random can't handle full u64 range directly)

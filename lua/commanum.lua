@@ -1,9 +1,11 @@
 #!/usr/bin/env lua
 
+local M = {}
+
 local MAX_LEN = 64
 
 -- Format a numeric string with commas every 3 digits from the right
-local function formatWithCommas(num_str)
+function M.formatWithCommas(num_str)
     local num_len = #num_str
     local num_comma = math.floor((num_len - 1) / 3)
     local final_len = num_len + num_comma
@@ -44,19 +46,18 @@ local function formatWithCommas(num_str)
     return string.char(unpack(result))
 end
 
--- Main
-local function main()
+-- Run as CLI if executed directly (not required as module)
+if arg and arg[0] and arg[0]:match("commanum%.lua$") then
     if #arg < 1 then
         io.stderr:write("Error: Missing argument.\n")
-        return
+        os.exit(1)
     end
     if #arg > 1 then
         io.stderr:write("Error: Too many arguments.\n")
-        return
+        os.exit(1)
     end
 
-    local num_str = arg[1]
-    local formatted, err = formatWithCommas(num_str)
+    local formatted, err = M.formatWithCommas(arg[1])
 
     if not formatted then
         io.stderr:write("Error: Please provide only digits\n")
@@ -67,4 +68,4 @@ local function main()
     print(formatted)
 end
 
-main()
+return M
