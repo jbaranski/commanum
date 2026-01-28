@@ -9,3 +9,12 @@ run-lua:
 
 install-lua:
 	cp lua/commanum.lua ~/.local/bin/commanum-lua
+
+perf-zig:
+	zig build perf
+
+perf-lua:
+	lua lua/perf_test.lua
+
+perf-all:
+	@echo "=== Zig Performance Test ===" && zig build perf && echo "" && echo "=== Lua Performance Test ===" && lua lua/perf_test.lua
