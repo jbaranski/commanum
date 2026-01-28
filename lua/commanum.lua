@@ -22,17 +22,22 @@ local function formatWithCommas(num_str)
         end
     end
 
-    -- Build the formatted string from right to left
+    -- Build the formatted string from right to left using pre-sized array
     local result = {}
+    local str_idx = num_len
+    local dest_idx = final_len
     local digit_count = 0
 
-    for i = num_len, 1, -1 do
+    while str_idx > 0 do
         if digit_count == 3 then
-            table.insert(result, 1, ",")
+            result[dest_idx] = ","
+            dest_idx = dest_idx - 1
             digit_count = 0
         end
 
-        table.insert(result, 1, num_str:sub(i, i))
+        result[dest_idx] = num_str:sub(str_idx, str_idx)
+        dest_idx = dest_idx - 1
+        str_idx = str_idx - 1
         digit_count = digit_count + 1
     end
 
