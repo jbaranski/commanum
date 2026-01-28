@@ -11,6 +11,12 @@ pub fn build(b: *std.Build) void {
 
     b.installArtifact(exe);
 
+    // Create commanum module for sharing
+    const commanum_mod = b.createModule(.{
+        .root_source_file = b.path("zig/src/main.zig"),
+        .target = b.graph.host,
+    });
+
     // Performance test executable
     const perf_test = b.addExecutable(.{
         .name = "perf_test",
@@ -18,6 +24,9 @@ pub fn build(b: *std.Build) void {
             .root_source_file = b.path("zig/src/perf_test.zig"),
             .target = b.graph.host,
             .optimize = .ReleaseFast,
+            .imports = &.{
+                .{ .name = "commanum", .module = commanum_mod },
+            },
         }),
     });
 

@@ -2,7 +2,7 @@ const std = @import("std");
 const time = std.time;
 
 // Import formatWithCommas from commanum module
-const commanum = @import("main.zig");
+const commanum = @import("commanum");
 const formatWithCommas = commanum.formatWithCommas;
 const MAX_LEN = commanum.MAX_LEN;
 
