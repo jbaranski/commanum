@@ -1,7 +1,7 @@
 const std = @import("std");
-const MAX_LEN = 64;
+pub const MAX_LEN = 64;
 
-fn formatWithCommas(
+pub fn formatWithCommas(
     num_str: []const u8,
     buffer: []u8,
 ) ![]const u8 {
