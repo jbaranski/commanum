@@ -11,6 +11,9 @@ install-lua:
 	cp lua/commanum.lua ~/.local/bin/commanum-lua
 
 # Performance test (basic)
+perf-zig:
+	zig build perf
+
 perf-lua:
 	cd lua && luajit perf_test.lua
 
