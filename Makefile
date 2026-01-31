@@ -43,7 +43,7 @@ perf-lua-mem:
 
 # Docker perf testing with valgrind
 docker-perf-valgrind:
-	docker build -t commanum-perf . && mkdir -p output && docker run --rm -v ./output:/output commanum-perf
+	rm -rf output && docker build -t commanum-perf . && mkdir -p output && docker run --rm -v ./output:/output commanum-perf
 
 # Clean profiling artifacts
 clean-prof:
