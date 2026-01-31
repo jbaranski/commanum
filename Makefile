@@ -42,11 +42,8 @@ perf-lua-mem:
 	cd lua && luajit -e "package.path='./?.lua;'..package.path" -e "require('perf_test_mem')"
 
 # Docker perf testing with valgrind
-docker-build:
-	docker build -t commanum-perf .
-
 docker-perf-valgrind:
-	mkdir -p output && docker run --rm -v ./output:/output commanum-perf
+	docker build -t commanum-perf . && mkdir -p output && docker run --rm -v ./output:/output commanum-perf
 
 # Clean profiling artifacts
 clean-prof:
