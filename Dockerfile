@@ -12,12 +12,12 @@ RUN git clone --depth 1 https://github.com/LuaJIT/LuaJIT.git /tmp/luajit && \
     ldconfig && \
     rm -rf /tmp/luajit
 
-# Install Zig 0.14.0 (detect architecture)
+# Install Zig 0.15.1 (detect architecture)
 ARG TARGETARCH
 RUN ZIG_ARCH=$(if [ "$TARGETARCH" = "arm64" ]; then echo "aarch64"; else echo "x86_64"; fi) && \
-    wget -q "https://ziglang.org/download/0.14.0/zig-linux-${ZIG_ARCH}-0.14.0.tar.xz" -O /tmp/zig.tar.xz && \
+    wget -q "https://ziglang.org/download/0.15.1/zig-linux-${ZIG_ARCH}-0.15.1.tar.xz" -O /tmp/zig.tar.xz && \
     tar xf /tmp/zig.tar.xz -C /opt && \
-    ln -s /opt/zig-linux-${ZIG_ARCH}-0.14.0/zig /usr/local/bin/zig && \
+    ln -s /opt/zig-linux-${ZIG_ARCH}-0.15.1/zig /usr/local/bin/zig && \
     rm /tmp/zig.tar.xz
 
 WORKDIR /app
