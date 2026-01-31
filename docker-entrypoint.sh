@@ -10,18 +10,6 @@ echo "========================================"
 echo "Reports will be written to ${OUTPUT_DIR}"
 echo ""
 
-# --- Lua Memprof (Tarantool LuaJIT) ---
-
-echo "----------------------------------------"
-echo "  Lua LuaJIT Memory Profiler (memprof)"
-echo "----------------------------------------"
-cd /app/lua
-MEMPROF_OUTPUT="${OUTPUT_DIR}/lua-memprof.bin" luajit perf_test_memprof.lua 2>&1 | tee "${OUTPUT_DIR}/lua-memprof-report.txt"
-echo ""
-echo "Parsing memprof output..."
-luajit -tm "${OUTPUT_DIR}/lua-memprof.bin" 2>&1 | tee -a "${OUTPUT_DIR}/lua-memprof-report.txt"
-echo ""
-
 # --- Lua Tests ---
 
 echo "----------------------------------------"

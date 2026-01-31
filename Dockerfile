@@ -2,17 +2,13 @@ FROM amazonlinux:2023
 
 RUN dnf update -y && dnf install -y \
     gcc make git tar xz wget \
-    cmake \
     valgrind \
     && dnf clean all
 
-# Install Tarantool's LuaJIT fork (includes misc.memprof memory profiler)
-# https://github.com/tarantool/luajit
-RUN git clone --depth 1 -b tarantool https://github.com/tarantool/luajit.git /tmp/luajit && \
+# Install LuaJIT from source
+RUN git clone --depth 1 https://github.com/LuaJIT/LuaJIT.git /tmp/luajit && \
     cd /tmp/luajit && \
-    cmake -B build -DCMAKE_BUILD_TYPE=Release && \
-    cmake --build build && \
-    cmake --install build && \
+    make && make install && \
     ldconfig && \
     rm -rf /tmp/luajit
 
