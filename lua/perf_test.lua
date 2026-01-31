@@ -55,10 +55,6 @@ local function main()
     local gen_elapsed_ms = (gen_end - gen_start) / 1e6
     print(string.format("Generation time: %.3f ms\n", gen_elapsed_ms))
 
-    -- Timing variables
-    local total_format_ns = 0
-    local min_ns = math.huge
-    local max_ns = 0
     local successful = 0
 
     print("Running formatting benchmark...")
@@ -67,19 +63,9 @@ local function main()
 
     for i = 1, NUM_ITERATIONS do
         local num_str = numbers[i]
-
-        -- Time the formatWithCommas call
-        local start_time = get_time_ns()
         local result, err = formatWithCommas(num_str)
-        local end_time = get_time_ns()
-
-        local elapsed = end_time - start_time
-        total_format_ns = total_format_ns + elapsed
-
         if result then
             successful = successful + 1
-            if elapsed < min_ns then min_ns = elapsed end
-            if elapsed > max_ns then max_ns = elapsed end
         end
     end
 
@@ -87,9 +73,8 @@ local function main()
     local total_elapsed_ns = bench_end - bench_start
 
     -- Calculate statistics
-    local avg_ns = total_format_ns / successful
     local total_ms = total_elapsed_ns / 1e6
-    local format_only_ms = total_format_ns / 1e6
+    local avg_ns = total_elapsed_ns / successful
     local ops_per_sec = successful / (total_ms / 1000)
 
     -- Print results
@@ -97,12 +82,8 @@ local function main()
     print("--------")
     print(string.format("Successful operations: %d / %d", successful, NUM_ITERATIONS))
     print(string.format("Total benchmark time:  %.3f ms", total_ms))
-    print(string.format("Format-only time:      %.3f ms", format_only_ms))
-    print("\nPer-operation statistics:")
-    print(string.format("  Average: %.1f ns", avg_ns))
-    print(string.format("  Min:     %.0f ns", min_ns))
-    print(string.format("  Max:     %.0f ns", max_ns))
-    print(string.format("\nThroughput: %.0f ops/sec", ops_per_sec))
+    print(string.format("Average per operation: %.1f ns", avg_ns))
+    print(string.format("Throughput: %.0f ops/sec", ops_per_sec))
 end
 
 main()

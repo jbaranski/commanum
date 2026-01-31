@@ -36,10 +36,6 @@ pub fn main() !void {
     var num_str_buf: [20]u8 = undefined; // max u64 is 20 digits
     var format_buf: [MAX_LEN]u8 = undefined;
 
-    // Timing variables
-    var total_format_ns: u64 = 0;
-    var min_ns: u64 = std.math.maxInt(u64);
-    var max_ns: u64 = 0;
     var successful: u64 = 0;
 
     std.debug.print("Running formatting benchmark...\n", .{});
@@ -49,19 +45,9 @@ pub fn main() !void {
     for (numbers) |num| {
         // Convert number to string
         const num_str = std.fmt.bufPrint(&num_str_buf, "{d}", .{num}) catch continue;
-
-        // Time the formatWithCommas call
-        const start = std.time.nanoTimestamp();
         const result = formatWithCommas(num_str, &format_buf);
-        const end = std.time.nanoTimestamp();
-
-        const elapsed: u64 = @intCast(end - start);
-        total_format_ns += elapsed;
-
         if (result) |_| {
             successful += 1;
-            if (elapsed < min_ns) min_ns = elapsed;
-            if (elapsed > max_ns) max_ns = elapsed;
         } else |_| {}
     }
 
@@ -69,9 +55,8 @@ pub fn main() !void {
     const total_elapsed_ns: u64 = @intCast(bench_end - bench_start);
 
     // Calculate statistics
-    const avg_ns: f64 = @as(f64, @floatFromInt(total_format_ns)) / @as(f64, @floatFromInt(successful));
     const total_ms: f64 = @as(f64, @floatFromInt(total_elapsed_ns)) / 1_000_000.0;
-    const format_only_ms: f64 = @as(f64, @floatFromInt(total_format_ns)) / 1_000_000.0;
+    const avg_ns: f64 = @as(f64, @floatFromInt(total_elapsed_ns)) / @as(f64, @floatFromInt(successful));
     const ops_per_sec: f64 = @as(f64, @floatFromInt(successful)) / (total_ms / 1000.0);
 
     // Print results
@@ -79,10 +64,6 @@ pub fn main() !void {
     std.debug.print("--------\n", .{});
     std.debug.print("Successful operations: {d} / {d}\n", .{ successful, NUM_ITERATIONS });
     std.debug.print("Total benchmark time:  {d:.3} ms\n", .{total_ms});
-    std.debug.print("Format-only time:      {d:.3} ms\n", .{format_only_ms});
-    std.debug.print("\nPer-operation statistics:\n", .{});
-    std.debug.print("  Average: {d:.1} ns\n", .{avg_ns});
-    std.debug.print("  Min:     {d} ns\n", .{min_ns});
-    std.debug.print("  Max:     {d} ns\n", .{max_ns});
-    std.debug.print("\nThroughput: {d:.0} ops/sec\n", .{ops_per_sec});
+    std.debug.print("Average per operation: {d:.1} ns\n", .{avg_ns});
+    std.debug.print("Throughput: {d:.0} ops/sec\n", .{ops_per_sec});
 }
