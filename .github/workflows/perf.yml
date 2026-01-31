@@ -22,14 +22,14 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y luajit
 
       - name: Build Zig
-        run: zig build --summary all
+        run: cd zig && zig build --summary all
 
       - name: Run Zig Performance Test
         run: |
           echo "========================================"
           echo "  Zig Performance Test"
           echo "========================================"
-          zig build perf
+          cd zig && zig build perf
 
       - name: Run Lua Performance Test
         run: |

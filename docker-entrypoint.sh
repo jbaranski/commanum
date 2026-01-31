@@ -38,20 +38,20 @@ echo "----------------------------------------"
 echo "  Zig Valgrind Memcheck"
 echo "----------------------------------------"
 cd /app
-valgrind --tool=memcheck --leak-check=full ./zig-out/bin/perf_test 2>&1 | tee "${OUTPUT_DIR}/zig-memcheck-report.txt"
+valgrind --tool=memcheck --leak-check=full ./zig/zig-out/bin/perf_test 2>&1 | tee "${OUTPUT_DIR}/zig-memcheck-report.txt"
 echo ""
 
 echo "----------------------------------------"
 echo "  Zig Valgrind Massif (Heap Profiler)"
 echo "----------------------------------------"
-valgrind --tool=massif --massif-out-file="${OUTPUT_DIR}/zig-massif.out" ./zig-out/bin/perf_test
+valgrind --tool=massif --massif-out-file="${OUTPUT_DIR}/zig-massif.out" ./zig/zig-out/bin/perf_test
 ms_print "${OUTPUT_DIR}/zig-massif.out" | tee "${OUTPUT_DIR}/zig-massif-report.txt"
 echo ""
 
 echo "----------------------------------------"
 echo "  Zig Valgrind Callgrind"
 echo "----------------------------------------"
-valgrind --tool=callgrind --callgrind-out-file="${OUTPUT_DIR}/zig-callgrind.out" ./zig-out/bin/perf_test
+valgrind --tool=callgrind --callgrind-out-file="${OUTPUT_DIR}/zig-callgrind.out" ./zig/zig-out/bin/perf_test
 callgrind_annotate "${OUTPUT_DIR}/zig-callgrind.out" | tee "${OUTPUT_DIR}/zig-callgrind-report.txt"
 echo ""
 

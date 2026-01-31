@@ -25,7 +25,7 @@ WORKDIR /app
 COPY . .
 
 # Pre-build zig perf test binary
-RUN zig build
+RUN cd zig && zig build
 
 VOLUME /output
 

@@ -1,10 +1,10 @@
 FLAMEGRAPH_PL ?= flamegraph.pl
 
 build:
-	zig build --summary all
+	cd zig && zig build --summary all
 
 install:
-	make build && cp zig-out/bin/commanum ~/.local/bin
+	make build && cp zig/zig-out/bin/commanum ~/.local/bin
 
 run-lua:
 	luajit lua/commanum.lua $(args) # args=1000
@@ -14,7 +14,7 @@ install-lua:
 
 # Performance test (basic)
 perf-zig:
-	zig build perf
+	cd zig && zig build perf
 
 perf-lua:
 	cd lua && luajit perf_test.lua

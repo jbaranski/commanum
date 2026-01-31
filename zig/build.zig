@@ -3,7 +3,7 @@ const std = @import("std");
 pub fn build(b: *std.Build) void {
     // Shared commanum library module (no std dependency)
     const commanum_mod = b.createModule(.{
-        .root_source_file = b.path("zig/src/commanum.zig"),
+        .root_source_file = b.path("src/commanum.zig"),
         .target = b.graph.host,
     });
 
@@ -11,7 +11,7 @@ pub fn build(b: *std.Build) void {
     const exe = b.addExecutable(.{
         .name = "commanum",
         .root_module = b.createModule(.{
-            .root_source_file = b.path("zig/src/main.zig"),
+            .root_source_file = b.path("src/main.zig"),
             .target = b.graph.host,
             .imports = &.{
                 .{ .name = "commanum", .module = commanum_mod },
@@ -25,7 +25,7 @@ pub fn build(b: *std.Build) void {
     const perf_test = b.addExecutable(.{
         .name = "perf_test",
         .root_module = b.createModule(.{
-            .root_source_file = b.path("zig/src/perf_test.zig"),
+            .root_source_file = b.path("src/perf_test.zig"),
             .target = b.graph.host,
             .optimize = .ReleaseFast,
             .imports = &.{
