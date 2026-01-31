@@ -19,70 +19,48 @@ pub fn main() !void {
     });
     const random = prng.random();
 
-    // Pre-generate all random numbers to measure formatting time only
-    std.debug.print("Generating {d} random numbers...\n", .{NUM_ITERATIONS});
+    const allocator = std.heap.page_allocator;
+
+    // Pre-generate all random number strings
+    std.debug.print("Generating {d} random number strings...\n", .{NUM_ITERATIONS});
     const gen_start = std.time.nanoTimestamp();
 
-    var numbers: [NUM_ITERATIONS]u64 = undefined;
-    for (&numbers) |*n| {
-        n.* = random.int(u64);
+    const num_strs = try allocator.alloc([20]u8, NUM_ITERATIONS);
+    defer allocator.free(num_strs);
+    const num_lens = try allocator.alloc(u8, NUM_ITERATIONS);
+    defer allocator.free(num_lens);
+
+    for (num_strs, num_lens) |*str_buf, *len| {
+        const s = std.fmt.bufPrint(str_buf, "{d}", .{random.int(u64)}) catch unreachable;
+        len.* = @intCast(s.len);
     }
 
     const gen_end = std.time.nanoTimestamp();
     const gen_elapsed_ns: u64 = @intCast(gen_end - gen_start);
     std.debug.print("Generation time: {d:.3} ms\n\n", .{@as(f64, @floatFromInt(gen_elapsed_ns)) / 1_000_000.0});
 
-    // Buffers for conversion
-    var num_str_buf: [20]u8 = undefined; // max u64 is 20 digits
     var format_buf: [MAX_LEN]u8 = undefined;
-
-    // Timing variables
-    var total_format_ns: u64 = 0;
-    var min_ns: u64 = std.math.maxInt(u64);
-    var max_ns: u64 = 0;
-    var successful: u64 = 0;
 
     std.debug.print("Running formatting benchmark...\n", .{});
 
     const bench_start = std.time.nanoTimestamp();
 
-    for (numbers) |num| {
-        // Convert number to string
-        const num_str = std.fmt.bufPrint(&num_str_buf, "{d}", .{num}) catch continue;
-
-        // Time the formatWithCommas call
-        const start = std.time.nanoTimestamp();
-        const result = formatWithCommas(num_str, &format_buf);
-        const end = std.time.nanoTimestamp();
-
-        const elapsed: u64 = @intCast(end - start);
-        total_format_ns += elapsed;
-
-        if (result) |_| {
-            successful += 1;
-            if (elapsed < min_ns) min_ns = elapsed;
-            if (elapsed > max_ns) max_ns = elapsed;
-        } else |_| {}
+    for (num_strs, num_lens) |*str_buf, len| {
+        _ = formatWithCommas(str_buf[0..len], &format_buf) catch {};
     }
 
     const bench_end = std.time.nanoTimestamp();
     const total_elapsed_ns: u64 = @intCast(bench_end - bench_start);
 
     // Calculate statistics
-    const avg_ns: f64 = @as(f64, @floatFromInt(total_format_ns)) / @as(f64, @floatFromInt(successful));
     const total_ms: f64 = @as(f64, @floatFromInt(total_elapsed_ns)) / 1_000_000.0;
-    const format_only_ms: f64 = @as(f64, @floatFromInt(total_format_ns)) / 1_000_000.0;
-    const ops_per_sec: f64 = @as(f64, @floatFromInt(successful)) / (total_ms / 1000.0);
+    const avg_ns: f64 = @as(f64, @floatFromInt(total_elapsed_ns)) / @as(f64, @floatFromInt(NUM_ITERATIONS));
+    const ops_per_sec: f64 = @as(f64, @floatFromInt(NUM_ITERATIONS)) / (total_ms / 1000.0);
 
     // Print results
     std.debug.print("\nResults:\n", .{});
     std.debug.print("--------\n", .{});
-    std.debug.print("Successful operations: {d} / {d}\n", .{ successful, NUM_ITERATIONS });
     std.debug.print("Total benchmark time:  {d:.3} ms\n", .{total_ms});
-    std.debug.print("Format-only time:      {d:.3} ms\n", .{format_only_ms});
-    std.debug.print("\nPer-operation statistics:\n", .{});
-    std.debug.print("  Average: {d:.1} ns\n", .{avg_ns});
-    std.debug.print("  Min:     {d} ns\n", .{min_ns});
-    std.debug.print("  Max:     {d} ns\n", .{max_ns});
-    std.debug.print("\nThroughput: {d:.0} ops/sec\n", .{ops_per_sec});
+    std.debug.print("Average per operation: {d:.1} ns\n", .{avg_ns});
+    std.debug.print("Throughput: {d:.0} ops/sec\n", .{ops_per_sec});
 }
