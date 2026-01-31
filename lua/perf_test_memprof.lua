@@ -1,98 +1,161 @@
 #!/usr/bin/env lua
 --[[
-Memory profiler test using Tarantool's LuaJIT misc.memprof
-Requires: Tarantool's LuaJIT fork (https://github.com/tarantool/luajit)
-Run with: make perf-lua-memprof (local, requires Tarantool LuaJIT)
-          make docker-perf-valgrind (Docker, automatically uses Tarantool LuaJIT)
+Memory allocation profiler using debug.sethook + collectgarbage("count").
+Works with any standard LuaJIT (including OpenResty's fork).
+
+Hooks every line, measures memory delta, and attributes allocations to
+source locations. JIT is disabled during profiling (debug hooks force
+interpreter mode) but allocation hotspots are the same.
+
+Run with: make perf-lua-memprof
+Configure: MEMPROF_ITERATIONS=50000 make perf-lua-memprof
 ]]
 
--- Import formatWithCommas from commanum module
 local commanum = require("commanum")
 local formatWithCommas = commanum.formatWithCommas
 
-local NUM_ITERATIONS = tonumber(os.getenv("NUM_ITERATIONS")) or 1000000
-local MAX_U64 = 18446744073709551615  -- 2^64 - 1
-local MEMPROF_OUTPUT = os.getenv("MEMPROF_OUTPUT") or "memprof.bin"
+local NUM_ITERATIONS = tonumber(os.getenv("MEMPROF_ITERATIONS") or os.getenv("NUM_ITERATIONS")) or 10000
 
--- Check for misc.memprof availability
-if type(misc) ~= "table" or type(misc.memprof) ~= "table" then
-    io.stderr:write("Error: misc.memprof not available.\n")
-    io.stderr:write("This test requires Tarantool's LuaJIT fork.\n")
-    io.stderr:write("Build from: https://github.com/tarantool/luajit (branch: tarantool)\n")
-    os.exit(1)
-end
+-- Profiling state
+local alloc_by_location = {}
+local prev_mem = 0
+local prev_src = ""
+local prev_line = 0
+local profiler_src = nil
 
--- Generate a random number string
-local function random_u64_string()
-    local len = math.random(1, 20)
-    local digits = {}
-    if len == 1 then
-        digits[1] = tostring(math.random(0, 9))
-    else
-        digits[1] = tostring(math.random(1, 9))
-        for i = 2, len do
-            digits[i] = tostring(math.random(0, 9))
+local function mem_hook(event, line)
+    local mem = collectgarbage("count")
+    local delta = mem - prev_mem
+
+    local info = debug.getinfo(2, "Sl")
+    local src = info.short_src or "?"
+    local cur_line = info.currentline or 0
+
+    -- Attribute positive deltas to the PREVIOUS line (which caused the allocation)
+    -- Skip allocations from this profiler file itself
+    if delta > 0 and prev_line > 0 and prev_src ~= profiler_src then
+        local key = prev_src .. ":" .. prev_line
+        local entry = alloc_by_location[key]
+        if entry then
+            entry.kb = entry.kb + delta
+            entry.count = entry.count + 1
+        else
+            alloc_by_location[key] = { kb = delta, count = 1, src = prev_src, line = prev_line }
         end
     end
-    return table.concat(digits)
+
+    -- Re-measure AFTER our own allocations so they are excluded from the next delta
+    prev_mem = collectgarbage("count")
+    prev_src = src
+    prev_line = cur_line
+end
+
+-- Source line reader for the report
+local source_cache = {}
+local function get_source_line(file, line_num)
+    if not source_cache[file] then
+        local lines = {}
+        local f = io.open(file, "r")
+        if f then
+            for l in f:lines() do
+                lines[#lines + 1] = l
+            end
+            f:close()
+        end
+        source_cache[file] = lines
+    end
+    local line = source_cache[file][line_num]
+    return line and line:match("^%s*(.-)%s*$") or ""
 end
 
 local function main()
-    print("Lua Performance Test (misc.memprof)")
-    print("=====================================")
+    -- Identify our own source file to filter from results
+    local my_info = debug.getinfo(1, "S")
+    profiler_src = my_info.short_src
+
+    print("Lua Memory Profile (debug.sethook + collectgarbage)")
+    print("====================================================")
     print(string.format("Iterations: %d", NUM_ITERATIONS))
-    print(string.format("Range: 0 to %s (max u64)", tostring(MAX_U64)))
-    print(string.format("Output: %s\n", MEMPROF_OUTPUT))
+    print("Note: JIT disabled during profiling (debug hooks force interpreter mode)")
+    print("")
 
     math.randomseed(os.time())
 
-    -- Pre-generate random numbers (outside profiling window)
+    -- Pre-generate random numbers outside profiling window
     print(string.format("Generating %d random numbers...", NUM_ITERATIONS))
     local numbers = {}
     for i = 1, NUM_ITERATIONS do
-        numbers[i] = random_u64_string()
+        local len = math.random(1, 20)
+        local digits = {}
+        if len == 1 then
+            digits[1] = tostring(math.random(0, 9))
+        else
+            digits[1] = tostring(math.random(1, 9))
+            for j = 2, len do
+                digits[j] = tostring(math.random(0, 9))
+            end
+        end
+        numbers[i] = table.concat(digits)
     end
     print("Generation complete.\n")
 
-    -- Start memory profiler
-    print("Starting memory profiler...")
-    local started, err = misc.memprof.start(MEMPROF_OUTPUT)
-    if not started then
-        io.stderr:write(string.format("Error starting memprof: %s\n", tostring(err)))
-        os.exit(1)
-    end
+    -- Force full GC before profiling
+    collectgarbage("collect")
+    collectgarbage("collect")
 
-    -- Run benchmark under profiling
-    local bench_start = os.clock()
+    print("Running profiled benchmark...")
+
+    -- Start profiling
+    prev_mem = collectgarbage("count")
+    prev_src = ""
+    prev_line = 0
+
+    debug.sethook(mem_hook, "l")
 
     for i = 1, NUM_ITERATIONS do
         formatWithCommas(numbers[i])
     end
 
-    local bench_end = os.clock()
+    debug.sethook()
 
-    -- Collect garbage before stopping to capture all dead objects
-    collectgarbage()
+    print("Profile complete.\n")
 
-    -- Stop memory profiler
-    local stopped, stop_err = misc.memprof.stop()
-    if not stopped then
-        io.stderr:write(string.format("Error stopping memprof: %s\n", tostring(stop_err)))
-        os.exit(1)
+    -- Sort by total KB allocated
+    local sorted = {}
+    local total_kb = 0
+    local total_allocs = 0
+    for key, data in pairs(alloc_by_location) do
+        sorted[#sorted + 1] = data
+        data.key = key
+        total_kb = total_kb + data.kb
+        total_allocs = total_allocs + data.count
+    end
+    table.sort(sorted, function(a, b) return a.kb > b.kb end)
+
+    -- Print report
+    print("Top Allocation Sites:")
+    print("---------------------")
+    print(string.format("%-30s %10s %8s  %s", "LOCATION", "KB", "COUNT", "CODE"))
+    print(string.rep("-", 90))
+
+    local shown = math.min(20, #sorted)
+    for i = 1, shown do
+        local entry = sorted[i]
+        local code = get_source_line(entry.src, entry.line)
+        if #code > 38 then code = code:sub(1, 35) .. "..." end
+        print(string.format("%-30s %10.1f %8d  %s",
+            entry.key, entry.kb, entry.count, code))
     end
 
-    -- Calculate and print results
-    local total_ms = (bench_end - bench_start) * 1000
-    local avg_ns = (total_ms * 1e6) / NUM_ITERATIONS
-    local ops_per_sec = NUM_ITERATIONS / (total_ms / 1000)
-
-    print("\nResults:")
+    print("")
+    print("Summary:")
     print("--------")
-    print(string.format("Total benchmark time:  %.3f ms", total_ms))
-    print(string.format("Average per operation: %.1f ns", avg_ns))
-    print(string.format("Throughput: %.0f ops/sec", ops_per_sec))
-    print(string.format("\nMemory profile written to: %s", MEMPROF_OUTPUT))
-    print("Parse with: luajit -tm " .. MEMPROF_OUTPUT)
+    print(string.format("Total tracked allocations: %d", total_allocs))
+    print(string.format("Total tracked memory: %.1f KB", total_kb))
+    if NUM_ITERATIONS > 0 then
+        print(string.format("Average per formatWithCommas call: ~%.1f bytes",
+            (total_kb * 1024) / NUM_ITERATIONS))
+    end
 end
 
 main()
