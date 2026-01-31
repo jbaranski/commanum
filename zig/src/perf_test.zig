@@ -3,9 +3,15 @@ const commanum = @import("commanum");
 const formatWithCommas = commanum.formatWithCommas;
 const MAX_LEN = commanum.MAX_LEN;
 
-const NUM_ITERATIONS = 1_000_000;
+const DEFAULT_NUM_ITERATIONS = 1_000_000;
+
+fn getNumIterations() usize {
+    const val = std.posix.getenv("NUM_ITERATIONS") orelse return DEFAULT_NUM_ITERATIONS;
+    return std.fmt.parseInt(usize, val, 10) catch DEFAULT_NUM_ITERATIONS;
+}
 
 pub fn main() !void {
+    const NUM_ITERATIONS = getNumIterations();
     std.debug.print("Zig Performance Test\n", .{});
     std.debug.print("====================\n", .{});
     std.debug.print("Iterations: {d}\n", .{NUM_ITERATIONS});

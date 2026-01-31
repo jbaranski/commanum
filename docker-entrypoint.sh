@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 
+export NUM_ITERATIONS="${NUM_ITERATIONS:-1000}"
 OUTPUT_DIR="/output"
 
 echo "========================================"
