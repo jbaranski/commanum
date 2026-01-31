@@ -4,3 +4,4 @@ zig-out
 *.svg
 *.txt
 *.log
+*.bak
