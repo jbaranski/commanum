@@ -41,6 +41,10 @@ perf-lua-jp-flame:
 perf-lua-mem:
 	cd lua && luajit -e "package.path='./?.lua;'..package.path" -e "require('perf_test_mem')"
 
+# Option 5: Tarantool LuaJIT memory profiler (requires Tarantool LuaJIT fork: https://github.com/tarantool/luajit)
+perf-lua-memprof:
+	cd lua && MEMPROF_OUTPUT=memprof.bin luajit perf_test_memprof.lua && echo "" && echo "Parsing memprof output..." && echo "" && luajit -tm memprof.bin && rm -f memprof.bin
+
 # Docker perf testing with valgrind
 docker-perf-valgrind:
 	rm -rf output && docker build -t commanum-perf . && mkdir -p output && docker run --rm -v ./output:/output commanum-perf
