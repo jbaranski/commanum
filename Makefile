@@ -35,7 +35,7 @@ perf-lua-jp:
 
 # Option 3b: LuaJIT profiler with flame graph output (requires FlameGraph: https://github.com/brendangregg/FlameGraph)
 perf-lua-jp-flame:
-	cd lua && luajit -jp=F perf_test.lua > perf_flame.txt && $(FLAMEGRAPH_PL) perf_flame.txt > perf_flame.svg && echo "Flame graph SVG written to lua/perf_flame.svg"
+	cd lua && luajit -jp=F,perf_flame.txt perf_test.lua && $(FLAMEGRAPH_PL) perf_flame.txt > perf_flame.svg && echo "Flame graph SVG written to lua/perf_flame.svg"
 
 # Option 4: Valgrind massif heap profiler (Linux only)
 perf-lua-massif:
