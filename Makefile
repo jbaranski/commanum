@@ -45,12 +45,9 @@ perf-lua-mem:
 docker-perf-valgrind:
 	rm -rf output && docker build -t commanum-perf . && mkdir -p output && docker run --rm -v ./output:/output commanum-perf
 
-# View valgrind results in GUI (requires: brew install qcachegrind massif-visualizer)
+# View callgrind results in GUI (requires: brew install qcachegrind)
 view-callgrind:
 	qcachegrind output/zig-callgrind.out
-
-view-massif:
-	massif-visualizer output/zig-massif.out
 
 # Clean profiling artifacts
 clean-prof:
