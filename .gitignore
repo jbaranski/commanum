@@ -5,3 +5,5 @@ zig-out
 *.txt
 *.log
 *.bak
+*.out
+output/
