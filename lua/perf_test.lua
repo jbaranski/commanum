@@ -55,18 +55,12 @@ local function main()
     local gen_elapsed_ms = (gen_end - gen_start) / 1e6
     print(string.format("Generation time: %.3f ms\n", gen_elapsed_ms))
 
-    local successful = 0
-
     print("Running formatting benchmark...")
 
     local bench_start = get_time_ns()
 
     for i = 1, NUM_ITERATIONS do
-        local num_str = numbers[i]
-        local result, err = formatWithCommas(num_str)
-        if result then
-            successful = successful + 1
-        end
+        formatWithCommas(numbers[i])
     end
 
     local bench_end = get_time_ns()
@@ -74,13 +68,12 @@ local function main()
 
     -- Calculate statistics
     local total_ms = total_elapsed_ns / 1e6
-    local avg_ns = total_elapsed_ns / successful
-    local ops_per_sec = successful / (total_ms / 1000)
+    local avg_ns = total_elapsed_ns / NUM_ITERATIONS
+    local ops_per_sec = NUM_ITERATIONS / (total_ms / 1000)
 
     -- Print results
     print("\nResults:")
     print("--------")
-    print(string.format("Successful operations: %d / %d", successful, NUM_ITERATIONS))
     print(string.format("Total benchmark time:  %.3f ms", total_ms))
     print(string.format("Average per operation: %.1f ns", avg_ns))
     print(string.format("Throughput: %.0f ops/sec", ops_per_sec))

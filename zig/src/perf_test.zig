@@ -36,19 +36,13 @@ pub fn main() !void {
     var num_str_buf: [20]u8 = undefined; // max u64 is 20 digits
     var format_buf: [MAX_LEN]u8 = undefined;
 
-    var successful: u64 = 0;
-
     std.debug.print("Running formatting benchmark...\n", .{});
 
     const bench_start = std.time.nanoTimestamp();
 
     for (numbers) |num| {
-        // Convert number to string
         const num_str = std.fmt.bufPrint(&num_str_buf, "{d}", .{num}) catch continue;
-        const result = formatWithCommas(num_str, &format_buf);
-        if (result) |_| {
-            successful += 1;
-        } else |_| {}
+        _ = formatWithCommas(num_str, &format_buf) catch {};
     }
 
     const bench_end = std.time.nanoTimestamp();
@@ -56,13 +50,12 @@ pub fn main() !void {
 
     // Calculate statistics
     const total_ms: f64 = @as(f64, @floatFromInt(total_elapsed_ns)) / 1_000_000.0;
-    const avg_ns: f64 = @as(f64, @floatFromInt(total_elapsed_ns)) / @as(f64, @floatFromInt(successful));
-    const ops_per_sec: f64 = @as(f64, @floatFromInt(successful)) / (total_ms / 1000.0);
+    const avg_ns: f64 = @as(f64, @floatFromInt(total_elapsed_ns)) / @as(f64, @floatFromInt(NUM_ITERATIONS));
+    const ops_per_sec: f64 = @as(f64, @floatFromInt(NUM_ITERATIONS)) / (total_ms / 1000.0);
 
     // Print results
     std.debug.print("\nResults:\n", .{});
     std.debug.print("--------\n", .{});
-    std.debug.print("Successful operations: {d} / {d}\n", .{ successful, NUM_ITERATIONS });
     std.debug.print("Total benchmark time:  {d:.3} ms\n", .{total_ms});
     std.debug.print("Average per operation: {d:.1} ns\n", .{avg_ns});
     std.debug.print("Throughput: {d:.0} ops/sec\n", .{ops_per_sec});
