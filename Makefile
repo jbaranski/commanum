@@ -46,8 +46,11 @@ docker-perf-valgrind:
 	rm -rf output && docker build -t commanum-perf . && mkdir -p output && docker run --rm -v ./output:/output commanum-perf
 
 # View callgrind results in GUI (requires: brew install qcachegrind)
-view-callgrind:
+view-callgrind-zig:
 	qcachegrind output/zig-callgrind.out
+
+view-callgrind-lua:
+	qcachegrind output/lua-callgrind.out
 
 # Clean profiling artifacts
 clean-prof:
