@@ -23,6 +23,10 @@ perf-lua:
 perf-lua-jv:
 	cd lua && luajit -jv perf_test.lua
 
+# Option 2b: LuaJIT detailed JIT dump (bytecode, IR, machine code per trace)
+perf-lua-jdump:
+	cd lua && luajit -jdump perf_test.lua
+
 # Option 3: LuaJIT profiler (requires LuaJIT built with profiler support)
 perf-lua-jp:
 	cd lua && luajit -jp=vl perf_test.lua
