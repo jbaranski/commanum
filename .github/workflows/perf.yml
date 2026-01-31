@@ -1,0 +1,39 @@
+name: Performance Tests
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  perf:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Zig
+        uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: 0.14.0
+
+      - name: Install LuaJIT
+        run: sudo apt-get update && sudo apt-get install -y luajit
+
+      - name: Build Zig
+        run: zig build --summary all
+
+      - name: Run Zig Performance Test
+        run: |
+          echo "========================================"
+          echo "  Zig Performance Test"
+          echo "========================================"
+          zig build perf
+
+      - name: Run Lua Performance Test
+        run: |
+          echo "========================================"
+          echo "  Lua Performance Test"
+          echo "========================================"
+          cd lua && luajit perf_test.lua

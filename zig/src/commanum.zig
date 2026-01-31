@@ -1,7 +1,10 @@
-const std = @import("std");
-const MAX_LEN = 64;
+pub const MAX_LEN = 64;
 
-fn formatWithCommas(
+fn isDigit(c: u8) bool {
+    return c >= '0' and c <= '9';
+}
+
+pub fn formatWithCommas(
     num_str: []const u8,
     buffer: []u8,
 ) ![]const u8 {
@@ -27,7 +30,7 @@ fn formatWithCommas(
         str_idx -= 1;
 
         // TODO: support float
-        if (!std.ascii.isDigit(num_str[str_idx])) {
+        if (!isDigit(num_str[str_idx])) {
             return error.InvalidInput;
         }
 
@@ -36,25 +39,4 @@ fn formatWithCommas(
     }
 
     return buffer[0..@as(usize, final_len)];
-}
-
-pub fn main() !void {
-    if (std.os.argv.len < 2) {
-        std.debug.print("Error: Missing argument.\n", .{});
-        return;
-    }
-    if (std.os.argv.len > 2) {
-        std.debug.print("Error: Too many arguments.\n", .{});
-        return;
-    }
-
-    const num_str: []const u8 = std.mem.span(std.os.argv[1]);
-    var buffer: [MAX_LEN]u8 = undefined;
-    const formatted_slice = formatWithCommas(num_str, &buffer) catch {
-        std.debug.print("Error: Please provide only digits\n", .{});
-        std.process.exit(1);
-    };
-
-    // TODO: support some kind of flag(s) that allow more verbose output
-    std.debug.print("{s}\n", .{formatted_slice});
 }
