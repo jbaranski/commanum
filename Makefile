@@ -1,3 +1,5 @@
+FLAMEGRAPH_PL ?= flamegraph.pl
+
 build:
 	zig build --summary all
 
@@ -31,9 +33,9 @@ perf-lua-jdump:
 perf-lua-jp:
 	cd lua && luajit -jp=vl perf_test.lua
 
-# Option 3b: LuaJIT profiler with flame graph output
+# Option 3b: LuaJIT profiler with flame graph output (requires FlameGraph: https://github.com/brendangregg/FlameGraph)
 perf-lua-jp-flame:
-	cd lua && luajit -jp=F perf_test.lua > perf_flame.txt && echo "Flame graph data written to lua/perf_flame.txt"
+	cd lua && luajit -jp=F perf_test.lua > perf_flame.txt && $(FLAMEGRAPH_PL) perf_flame.txt > perf_flame.svg && echo "Flame graph SVG written to lua/perf_flame.svg"
 
 # Option 4: Valgrind massif heap profiler (Linux only)
 perf-lua-massif:
@@ -49,4 +51,4 @@ perf-lua-mem:
 
 # Clean profiling artifacts
 clean-prof:
-	rm -f lua/massif.out lua/callgrind.out lua/perf_flame.txt
+	rm -f lua/massif.out lua/callgrind.out lua/perf_flame.txt lua/perf_flame.svg
