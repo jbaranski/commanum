@@ -1,0 +1,7 @@
+.git
+.zig-cache
+zig-out
+output
+*.out
+*.svg
+*.log

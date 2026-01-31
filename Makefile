@@ -1,10 +1,10 @@
 FLAMEGRAPH_PL ?= flamegraph.pl
 
 build:
-	zig build --summary all
+	cd zig && zig build --summary all
 
 install:
-	make build && cp zig-out/bin/commanum ~/.local/bin
+	make build && cp zig/zig-out/bin/commanum ~/.local/bin
 
 run-lua:
 	luajit lua/commanum.lua $(args) # args=1000
@@ -14,7 +14,7 @@ install-lua:
 
 # Performance test (basic)
 perf-zig:
-	zig build perf
+	cd zig && zig build perf
 
 perf-lua:
 	cd lua && luajit perf_test.lua
@@ -37,18 +37,14 @@ perf-lua-jp:
 perf-lua-jp-flame:
 	cd lua && luajit -jp=F,perf_flame.txt perf_test.lua && $(FLAMEGRAPH_PL) perf_flame.txt > perf_flame.svg && echo "Flame graph SVG written to lua/perf_flame.svg"
 
-# Option 4: Valgrind massif heap profiler (Linux only)
-perf-lua-massif:
-	cd lua && valgrind --tool=massif --massif-out-file=massif.out luajit perf_test.lua && ms_print massif.out
-
-# Option 4b: Valgrind callgrind for call graph profiling
-perf-lua-callgrind:
-	cd lua && valgrind --tool=callgrind --callgrind-out-file=callgrind.out luajit perf_test.lua && echo "Use 'kcachegrind lua/callgrind.out' or 'callgrind_annotate lua/callgrind.out' to view"
-
-# Option 5: Memory tracking using collectgarbage (built into perf_test)
+# Option 4: Memory tracking using collectgarbage (built into perf_test)
 perf-lua-mem:
 	cd lua && luajit -e "package.path='./?.lua;'..package.path" -e "require('perf_test_mem')"
 
+# Docker perf testing with valgrind
+docker-perf-valgrind:
+	rm -rf output && docker build -t commanum-perf . && mkdir -p output && docker run --rm -v ./output:/output commanum-perf
+
 # Clean profiling artifacts
 clean-prof:
-	rm -f lua/massif.out lua/callgrind.out lua/perf_flame.txt lua/perf_flame.svg
+	rm -f lua/perf_flame.txt lua/perf_flame.svg

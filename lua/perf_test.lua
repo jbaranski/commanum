@@ -4,7 +4,7 @@
 local commanum = require("commanum")
 local formatWithCommas = commanum.formatWithCommas
 
-local NUM_ITERATIONS = 1000000
+local NUM_ITERATIONS = tonumber(os.getenv("NUM_ITERATIONS")) or 1000000
 local MAX_U64 = 18446744073709551615  -- 2^64 - 1
 
 -- High-resolution timer (uses os.clock for CPU time)
