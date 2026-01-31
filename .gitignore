@@ -1,3 +1,7 @@
 .zig-cache
 commanum
 zig-out
+*.svg
+*.txt
+*.log
+*.bak
