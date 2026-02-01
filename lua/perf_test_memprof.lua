@@ -14,7 +14,7 @@ Configure: MEMPROF_ITERATIONS=50000 make perf-lua-memprof
 local commanum = require("commanum")
 local formatWithCommas = commanum.formatWithCommas
 
-local NUM_ITERATIONS = tonumber(os.getenv("MEMPROF_ITERATIONS") or os.getenv("NUM_ITERATIONS")) or 10000
+local NUM_ITERATIONS = tonumber(os.getenv("MEMPROF_ITERATIONS") or os.getenv("NUM_ITERATIONS")) or 1000000
 
 -- Profiling state
 local alloc_by_location = {}
