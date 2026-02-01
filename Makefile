@@ -41,6 +41,10 @@ perf-lua-jp-flame:
 perf-lua-mem:
 	cd lua && luajit -e "package.path='./?.lua;'..package.path" -e "require('perf_test_mem')"
 
+# Option 5: Per-line memory allocation profiler (debug.sethook + collectgarbage, works with any LuaJIT)
+perf-lua-memprof:
+	cd lua && luajit perf_test_memprof.lua
+
 # Docker perf testing with valgrind
 docker-perf-valgrind:
 	rm -rf output && docker build -t commanum-perf . && mkdir -p output && docker run --rm -v ./output:/output commanum-perf
