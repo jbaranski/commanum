@@ -1,6 +1,7 @@
 #!/usr/bin/env lua
 
 local unpack = table.unpack or unpack  -- Lua 5.2+ compatibility
+local table_new = require("table.new")
 
 local M = {}
 
@@ -27,7 +28,7 @@ function M.formatWithCommas(num_str)
     end
 
     -- Build the formatted string from right to left using pre-sized array of bytes
-    local result = {}
+    local result = table_new(final_len, 0)
     local str_idx = num_len
     local dest_idx = final_len
     local digit_count = 0
