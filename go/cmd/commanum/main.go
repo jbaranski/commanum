@@ -18,14 +18,13 @@ func main() {
 	}
 
 	input := []byte(os.Args[1])
-	var buf [commanum.MaxLen]byte
 
-	result, err := commanum.FormatWithCommas(input, buf[:])
+	buf, n, err := commanum.FormatWithCommas(input)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error: Please provide only digits")
 		os.Exit(1)
 	}
 
-	os.Stdout.Write(result)
+	os.Stdout.Write(buf[:n])
 	os.Stdout.Write([]byte{'\n'})
 }

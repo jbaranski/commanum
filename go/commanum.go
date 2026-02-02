@@ -2,7 +2,10 @@ package commanum
 
 import "errors"
 
-const MaxLen = 64
+const (
+	MaxDigits      = 20                          // max digits in a u64
+	MaxFormattedLen = MaxDigits + (MaxDigits-1)/3 // 26: with commas
+)
 
 var (
 	ErrBufferTooSmall = errors.New("BufferTooSmall")
@@ -10,15 +13,17 @@ var (
 )
 
 // FormatWithCommas formats a numeric byte string with commas every 3 digits
-// from the right. It writes into the provided buffer and returns a slice of it.
-// Zero heap allocations in the hot path.
-func FormatWithCommas(numStr []byte, buf []byte) ([]byte, error) {
+// from the right. Returns a fixed-size buffer by value and the length of the
+// formatted result. Use buf[:n] to get the result slice.
+// Zero heap allocations.
+func FormatWithCommas(numStr []byte) (buf [MaxFormattedLen]byte, n int, err error) {
 	numLen := len(numStr)
 	numComma := (numLen - 1) / 3
 	finalLen := numLen + numComma
 
-	if finalLen > len(buf) {
-		return nil, ErrBufferTooSmall
+	if finalLen > MaxFormattedLen {
+		err = ErrBufferTooSmall
+		return
 	}
 
 	strIdx := numLen
@@ -37,12 +42,14 @@ func FormatWithCommas(numStr []byte, buf []byte) ([]byte, error) {
 
 		c := numStr[strIdx]
 		if c < '0' || c > '9' {
-			return nil, ErrInvalidInput
+			err = ErrInvalidInput
+			return
 		}
 
 		buf[destIdx] = c
 		digitCount++
 	}
 
-	return buf[:finalLen], nil
+	n = finalLen
+	return
 }

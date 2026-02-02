@@ -95,14 +95,12 @@ func main() {
 	genElapsed := time.Since(genStart)
 	fmt.Printf("Generation time: %.3f ms\n\n", float64(genElapsed.Nanoseconds())/1e6)
 
-	var formatBuf [commanum.MaxLen]byte
-
 	fmt.Println("Running formatting benchmark...")
 	benchStart := time.Now()
 
 	for i := 0; i < numIterations; i++ {
 		e := &entries[i]
-		commanum.FormatWithCommas(e.buf[:e.len], formatBuf[:])
+		commanum.FormatWithCommas(e.buf[:e.len])
 	}
 
 	benchElapsed := time.Since(benchStart)
