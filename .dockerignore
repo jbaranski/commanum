@@ -1,7 +1,9 @@
 .git
 .zig-cache
 zig-out
+go/bin
 output
 *.out
 *.svg
 *.log
+*.prof

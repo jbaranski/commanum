@@ -1,9 +1,11 @@
 .zig-cache
-commanum
+/commanum
 zig-out
+go/bin/
 *.svg
 *.txt
 *.log
 *.bak
 *.out
+*.prof
 output/
