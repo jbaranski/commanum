@@ -52,7 +52,8 @@ pub fn main() !void {
     const bench_start = std.time.nanoTimestamp();
 
     for (num_strs, num_lens) |*str_buf, len| {
-        _ = formatWithCommas(str_buf[0..len], &format_buf) catch {};
+        const result = formatWithCommas(str_buf[0..len], &format_buf) catch "";
+        std.mem.doNotOptimizeAway(result.ptr);
     }
 
     const bench_end = std.time.nanoTimestamp();
