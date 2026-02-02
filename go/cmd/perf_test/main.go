@@ -25,7 +25,7 @@ var (
 )
 
 type numEntry struct {
-	buf [20]byte // max digits in u64
+	buf [commanum.MaxDigits]byte
 	len uint8
 }
 
