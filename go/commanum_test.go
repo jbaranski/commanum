@@ -2,46 +2,33 @@ package commanum
 
 import "testing"
 
-var (
-	sinkBuf [MaxFormattedLen]byte
-	sinkN   int
-)
+var sink []byte
 
 func BenchmarkFormatWithCommas_MaxU64(b *testing.B) {
 	input := []byte("18446744073709551615")
 	for i := 0; i < b.N; i++ {
-		sinkBuf, sinkN, _ = FormatWithCommas(input)
+		sink, _ = FormatWithCommas(input)
 	}
 }
 
 func BenchmarkFormatWithCommas_Medium(b *testing.B) {
 	input := []byte("1234567890")
 	for i := 0; i < b.N; i++ {
-		sinkBuf, sinkN, _ = FormatWithCommas(input)
+		sink, _ = FormatWithCommas(input)
 	}
 }
 
 func BenchmarkFormatWithCommas_Small(b *testing.B) {
 	input := []byte("12345")
 	for i := 0; i < b.N; i++ {
-		sinkBuf, sinkN, _ = FormatWithCommas(input)
+		sink, _ = FormatWithCommas(input)
 	}
 }
 
 func BenchmarkFormatWithCommas_Single(b *testing.B) {
 	input := []byte("7")
 	for i := 0; i < b.N; i++ {
-		sinkBuf, sinkN, _ = FormatWithCommas(input)
-	}
-}
-
-func TestFormatWithCommas_ZeroAllocs(t *testing.T) {
-	input := []byte("18446744073709551615")
-	allocs := testing.AllocsPerRun(1000, func() {
-		sinkBuf, sinkN, _ = FormatWithCommas(input)
-	})
-	if allocs != 0 {
-		t.Errorf("expected 0 allocations, got %f", allocs)
+		sink, _ = FormatWithCommas(input)
 	}
 }
 
@@ -62,19 +49,19 @@ func TestFormatWithCommas_Correctness(t *testing.T) {
 		{"18446744073709551615", "18,446,744,073,709,551,615"},
 	}
 	for _, tt := range tests {
-		buf, n, err := FormatWithCommas([]byte(tt.input))
+		result, err := FormatWithCommas([]byte(tt.input))
 		if err != nil {
 			t.Errorf("FormatWithCommas(%q) returned error: %v", tt.input, err)
 			continue
 		}
-		if string(buf[:n]) != tt.expected {
-			t.Errorf("FormatWithCommas(%q) = %q, want %q", tt.input, string(buf[:n]), tt.expected)
+		if string(result) != tt.expected {
+			t.Errorf("FormatWithCommas(%q) = %q, want %q", tt.input, result, tt.expected)
 		}
 	}
 }
 
 func TestFormatWithCommas_InvalidInput(t *testing.T) {
-	_, _, err := FormatWithCommas([]byte("123abc"))
+	_, err := FormatWithCommas([]byte("123abc"))
 	if err != ErrInvalidInput {
 		t.Errorf("expected ErrInvalidInput, got %v", err)
 	}
