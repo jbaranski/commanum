@@ -12,12 +12,25 @@ run-lua:
 install-lua:
 	cp lua/commanum.lua ~/.local/bin/commanum-lua
 
+# Go build targets
+build-go:
+	cd go && mkdir -p bin && CGO_ENABLED=0 go build -o bin/commanum ./cmd/commanum && CGO_ENABLED=0 go build -o bin/perf_test ./cmd/perf_test
+
+install-go:
+	cd go && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o ~/.local/bin/commanum-go ./cmd/commanum
+
+run-go:
+	cd go && go run ./cmd/commanum $(args) # args=1000
+
 # Performance test (basic)
 perf-zig:
 	cd zig && zig build perf
 
 perf-lua:
 	cd lua && luajit perf_test.lua
+
+perf-go:
+	cd go && mkdir -p bin && CGO_ENABLED=0 go build -o bin/perf_test ./cmd/perf_test && ./bin/perf_test
 
 # Profiling options - see README.md for how to interpret results
 
@@ -45,6 +58,32 @@ perf-lua-mem:
 perf-lua-memprof:
 	cd lua && luajit perf_test_memprof.lua
 
+# Go profiling options
+
+# Go benchmark tests with memory stats
+perf-go-bench:
+	cd go && go test -bench=. -benchmem -count=3
+
+# Go CPU profiling with pprof (text top functions report)
+perf-go-cpuprof:
+	cd go && mkdir -p bin && CGO_ENABLED=0 go build -o bin/perf_test ./cmd/perf_test && ./bin/perf_test -cpuprofile=cpu.prof && go tool pprof -top bin/perf_test cpu.prof
+
+# Go CPU profile interactive web UI (flame graph, call graph, source view at :8080)
+perf-go-cpuprof-flame:
+	cd go && mkdir -p bin && CGO_ENABLED=0 go build -o bin/perf_test ./cmd/perf_test && ./bin/perf_test -cpuprofile=cpu.prof && go tool pprof -http=:8080 bin/perf_test cpu.prof
+
+# Go memory profiling with pprof (text top allocators report)
+perf-go-memprof:
+	cd go && mkdir -p bin && CGO_ENABLED=0 go build -o bin/perf_test ./cmd/perf_test && ./bin/perf_test -memprofile=mem.prof && go tool pprof -top bin/perf_test mem.prof
+
+# Go execution trace (view with: go tool trace go/trace.out)
+perf-go-trace:
+	cd go && mkdir -p bin && CGO_ENABLED=0 go build -o bin/perf_test ./cmd/perf_test && ./bin/perf_test -trace=trace.out && echo "Trace written to go/trace.out - view with: go tool trace go/trace.out"
+
+# Go GC statistics via GODEBUG
+perf-go-gcstats:
+	cd go && mkdir -p bin && CGO_ENABLED=0 go build -o bin/perf_test ./cmd/perf_test && GODEBUG=gctrace=1 ./bin/perf_test
+
 # Docker perf testing with valgrind
 docker-perf-valgrind:
 	rm -rf output && docker build -t commanum-perf . && mkdir -p output && docker run --rm -v ./output:/output commanum-perf
@@ -58,4 +97,4 @@ view-callgrind-lua:
 
 # Clean profiling artifacts
 clean-prof:
-	rm -f lua/perf_flame.txt lua/perf_flame.svg
+	rm -f lua/perf_flame.txt lua/perf_flame.svg go/cpu.prof go/mem.prof go/trace.out
