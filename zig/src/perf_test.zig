@@ -1,7 +1,9 @@
 const std = @import("std");
 const commanum = @import("commanum");
 const formatWithCommas = commanum.formatWithCommas;
+const numberToWords = commanum.numberToWords;
 const MAX_LEN = commanum.MAX_LEN;
+const WORDS_MAX_LEN = commanum.WORDS_MAX_LEN;
 
 const DEFAULT_NUM_ITERATIONS = 1_000_000;
 
@@ -65,9 +67,33 @@ pub fn main() !void {
     const ops_per_sec: f64 = @as(f64, @floatFromInt(NUM_ITERATIONS)) / (total_ms / 1000.0);
 
     // Print results
-    std.debug.print("\nResults:\n", .{});
-    std.debug.print("--------\n", .{});
+    std.debug.print("\nformatWithCommas Results:\n", .{});
+    std.debug.print("------------------------\n", .{});
     std.debug.print("Total benchmark time:  {d:.3} ms\n", .{total_ms});
     std.debug.print("Average per operation: {d:.1} ns\n", .{avg_ns});
     std.debug.print("Throughput: {d:.0} ops/sec\n", .{ops_per_sec});
+
+    // numberToWords benchmark
+    var words_buf: [WORDS_MAX_LEN]u8 = undefined;
+
+    std.debug.print("\nRunning numberToWords benchmark...\n", .{});
+
+    const words_start = std.time.nanoTimestamp();
+
+    for (num_strs, num_lens) |*str_buf, len| {
+        _ = numberToWords(str_buf[0..len], &words_buf) catch {};
+    }
+
+    const words_end = std.time.nanoTimestamp();
+    const words_elapsed_ns: u64 = @intCast(words_end - words_start);
+
+    const words_ms: f64 = @as(f64, @floatFromInt(words_elapsed_ns)) / 1_000_000.0;
+    const words_avg_ns: f64 = @as(f64, @floatFromInt(words_elapsed_ns)) / @as(f64, @floatFromInt(NUM_ITERATIONS));
+    const words_ops: f64 = @as(f64, @floatFromInt(NUM_ITERATIONS)) / (words_ms / 1000.0);
+
+    std.debug.print("\nnumberToWords Results:\n", .{});
+    std.debug.print("---------------------\n", .{});
+    std.debug.print("Total benchmark time:  {d:.3} ms\n", .{words_ms});
+    std.debug.print("Average per operation: {d:.1} ns\n", .{words_avg_ns});
+    std.debug.print("Throughput: {d:.0} ops/sec\n", .{words_ops});
 }

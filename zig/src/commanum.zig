@@ -49,6 +49,7 @@ const ones = [20][]const u8{
     "sixteen", "seventeen", "eighteen", "nineteen",
 };
 
+// [0] unused, [1] unused (10-19 are handled by the ones table above)
 const tens_table = [10][]const u8{
     "", "", "twenty", "thirty", "forty", "fifty",
     "sixty", "seventy", "eighty", "ninety",
@@ -96,16 +97,10 @@ fn groupToWords(n: u16, buffer: []u8, pos: usize) usize {
     return p;
 }
 
+// Assumes input is already validated (digits only, no leading zeros except "0").
 pub fn numberToWords(num_str: []const u8, buffer: []u8) ![]const u8 {
-    // Skip leading zeros
-    var start: usize = 0;
-    while (start < num_str.len -| 1 and num_str[start] == '0') {
-        start += 1;
-    }
-    const stripped = num_str[start..];
-
     // Handle zero
-    if (stripped.len == 1 and stripped[0] == '0') {
+    if (num_str.len == 1 and num_str[0] == '0') {
         const zero = "Zero";
         @memcpy(buffer[0..zero.len], zero);
         return buffer[0..zero.len];
@@ -114,7 +109,7 @@ pub fn numberToWords(num_str: []const u8, buffer: []u8) ![]const u8 {
     // Parse groups of 3 from right to left
     var group_values: [8]u16 = .{ 0, 0, 0, 0, 0, 0, 0, 0 };
     var num_groups: usize = 0;
-    var i: usize = stripped.len;
+    var i: usize = num_str.len;
     while (i > 0) {
         var group_val: u16 = 0;
         var multiplier: u16 = 1;
@@ -122,7 +117,7 @@ pub fn numberToWords(num_str: []const u8, buffer: []u8) ![]const u8 {
         var j: usize = i;
         while (j > group_start) {
             j -= 1;
-            group_val += @as(u16, stripped[j] - '0') * multiplier;
+            group_val += @as(u16, num_str[j] - '0') * multiplier;
             multiplier *= 10;
         }
         group_values[num_groups] = group_val;

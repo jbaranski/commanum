@@ -23,6 +23,11 @@ pub fn main() !void {
         std.process.exit(1);
     };
 
+    if (num_str.len > 1 and num_str[0] == '0') {
+        std.debug.print("Error: Leading zeros are not allowed\n", .{});
+        std.process.exit(1);
+    }
+
     var words_buf: [WORDS_MAX_LEN]u8 = undefined;
     const words = numberToWords(num_str, &words_buf) catch {
         std.debug.print("Error: Could not convert to words\n", .{});

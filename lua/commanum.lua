@@ -49,15 +49,10 @@ function M.formatWithCommas(num_str)
     return string.char(unpack(result))
 end
 
--- Convert a numeric string to English words
+-- Convert a numeric string to English words.
+-- Assumes input is already validated (digits only, no leading zeros except "0").
 function M.numberToWords(num_str)
-    -- Strip leading zeros but keep at least one digit
-    local stripped = num_str:match("^0*(%d+)$")
-    if not stripped or stripped == "" then
-        stripped = "0"
-    end
-
-    if stripped == "0" then
+    if num_str == "0" then
         return "Zero"
     end
 
@@ -68,6 +63,7 @@ function M.numberToWords(num_str)
         "sixteen", "seventeen", "eighteen", "nineteen",
     }
 
+    -- [0] unused, [1] unused (10-19 are handled by the ones table above)
     local tens = {
         [0] = "", "", "twenty", "thirty", "forty", "fifty",
         "sixty", "seventy", "eighty", "ninety",
@@ -108,11 +104,11 @@ function M.numberToWords(num_str)
 
     -- Split the number string into groups of 3 from the right
     local groups = {}
-    local len = #stripped
+    local len = #num_str
     local i = len
     while i > 0 do
         local start = math.max(1, i - 2)
-        local group_str = stripped:sub(start, i)
+        local group_str = num_str:sub(start, i)
         groups[#groups + 1] = tonumber(group_str)
         i = start - 1
     end
@@ -161,6 +157,11 @@ if arg and arg[0] and arg[0]:match("commanum%.lua$") then
 
     if not formatted then
         io.stderr:write("Error: Please provide only digits\n")
+        os.exit(1)
+    end
+
+    if #input > 1 and input:byte(1) == 48 then  -- '0' = 48
+        io.stderr:write("Error: Leading zeros are not allowed\n")
         os.exit(1)
     end
 
