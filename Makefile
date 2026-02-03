@@ -68,9 +68,9 @@ perf-go-bench:
 perf-go-cpuprof:
 	cd go && mkdir -p bin && CGO_ENABLED=0 go build -o bin/perf_test ./cmd/perf_test && ./bin/perf_test -cpuprofile=cpu.prof && go tool pprof -top bin/perf_test cpu.prof
 
-# Go CPU profile call graph SVG (requires graphviz for SVG output)
+# Go CPU profile interactive web UI (flame graph, call graph, source view at :8080)
 perf-go-cpuprof-flame:
-	cd go && mkdir -p bin && CGO_ENABLED=0 go build -o bin/perf_test ./cmd/perf_test && ./bin/perf_test -cpuprofile=cpu.prof && go tool pprof -svg bin/perf_test cpu.prof > cpu_flame.svg && echo "Call graph SVG written to go/cpu_flame.svg"
+	cd go && mkdir -p bin && CGO_ENABLED=0 go build -o bin/perf_test ./cmd/perf_test && ./bin/perf_test -cpuprofile=cpu.prof && go tool pprof -http=:8080 bin/perf_test cpu.prof
 
 # Go memory profiling with pprof (text top allocators report)
 perf-go-memprof:
@@ -95,9 +95,6 @@ view-callgrind-zig:
 view-callgrind-lua:
 	qcachegrind output/lua-callgrind.out
 
-view-callgrind-go:
-	qcachegrind output/go-callgrind.out
-
 # Clean profiling artifacts
 clean-prof:
-	rm -f lua/perf_flame.txt lua/perf_flame.svg go/cpu.prof go/mem.prof go/trace.out go/cpu_flame.svg
+	rm -f lua/perf_flame.txt lua/perf_flame.svg go/cpu.prof go/mem.prof go/trace.out
