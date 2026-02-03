@@ -20,7 +20,7 @@ install-go:
 	cd go && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o ~/.local/bin/commanum-go ./cmd/commanum
 
 run-go:
-	cd go && go run ./cmd/commanum $(args)
+	cd go && go run ./cmd/commanum $(args) # args=1000
 
 # Performance test (basic)
 perf-zig:
