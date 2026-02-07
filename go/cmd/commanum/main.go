@@ -1,10 +1,9 @@
 package main
 
 import (
+	"commanum"
 	"fmt"
 	"os"
-
-	"commanum"
 )
 
 func main() {
@@ -17,14 +16,24 @@ func main() {
 		os.Exit(1)
 	}
 
-	input := []byte(os.Args[1])
+	input := os.Args[1]
 
-	result, err := commanum.FormatWithCommas(input)
+	formatted, err := commanum.FormatWithCommas(input)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error: Please provide only digits")
 		os.Exit(1)
 	}
 
-	os.Stdout.Write(result)
-	os.Stdout.Write([]byte{'\n'})
+	if len(input) > 1 && input[0] == '0' {
+		fmt.Fprintln(os.Stderr, "Error: Leading zeros are not allowed")
+		os.Exit(1)
+	}
+
+	words := commanum.NumberToWords(input)
+
+	fmt.Println()
+	fmt.Println("  Digits :", input)
+	fmt.Println("  Commas :", formatted)
+	fmt.Println("   Words :", words)
+	fmt.Println()
 }

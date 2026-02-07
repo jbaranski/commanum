@@ -7,6 +7,7 @@ Run with: make perf-lua-mem
 -- Import formatWithCommas from commanum module
 local commanum = require("commanum")
 local formatWithCommas = commanum.formatWithCommas
+local numberToWords = commanum.numberToWords
 
 local NUM_ITERATIONS = 1000000
 local MAX_U64 = 18446744073709551615  -- 2^64 - 1
@@ -121,6 +122,60 @@ local function main()
     local final_mem = collectgarbage("count")
     print(string.format("After full GC: %.2f KB", final_mem))
     print(string.format("Freed by GC:   %.2f KB", mem_after_bench - final_mem))
+
+    -- numberToWords benchmark with memory tracking
+    print("\n\nnumberToWords Memory Tracking")
+    print("=============================")
+
+    local words_mem_before = get_mem_kb()
+    local words_mem_peak = words_mem_before
+    local words_mem_samples = {}
+
+    print("Running numberToWords benchmark with memory tracking...")
+
+    local words_successful = 0
+    local words_start = os.clock()
+
+    for i = 1, NUM_ITERATIONS do
+        local num_str = numbers[i]
+        local result = numberToWords(num_str)
+
+        if result then
+            words_successful = words_successful + 1
+        end
+
+        if i % sample_interval == 0 then
+            local current_mem = collectgarbage("count")
+            if current_mem > words_mem_peak then
+                words_mem_peak = current_mem
+            end
+            table.insert(words_mem_samples, {iteration = i, mem_kb = current_mem})
+        end
+    end
+
+    local words_end = os.clock()
+    local words_time_ms = (words_end - words_start) * 1000
+
+    local words_mem_after = get_mem_kb()
+
+    print(string.format("\nSuccessful operations: %d / %d", words_successful, NUM_ITERATIONS))
+    print(string.format("Total benchmark time:  %.3f ms", words_time_ms))
+    print(string.format("Throughput: %.0f ops/sec", words_successful / (words_time_ms / 1000)))
+
+    print("\nMemory Statistics:")
+    print("------------------")
+    print(string.format("Before benchmark:  %.2f KB", words_mem_before))
+    print(string.format("Peak during run:   %.2f KB", words_mem_peak))
+    print(string.format("After benchmark:   %.2f KB", words_mem_after))
+    print(string.format("Memory delta:      %.2f KB", words_mem_after - words_mem_before))
+    print(string.format("Peak increase:     %.2f KB", words_mem_peak - words_mem_before))
+
+    print("\nMemory Samples During Run:")
+    print("--------------------------")
+    for _, sample in ipairs(words_mem_samples) do
+        local pct = (sample.iteration / NUM_ITERATIONS) * 100
+        print(string.format("  %3.0f%% (%7d): %.2f KB", pct, sample.iteration, sample.mem_kb))
+    end
 end
 
 main()

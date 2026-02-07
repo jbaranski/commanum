@@ -3,6 +3,7 @@
 -- Import formatWithCommas from commanum module
 local commanum = require("commanum")
 local formatWithCommas = commanum.formatWithCommas
+local numberToWords = commanum.numberToWords
 
 local NUM_ITERATIONS = tonumber(os.getenv("NUM_ITERATIONS")) or 1000000
 local MAX_U64 = 18446744073709551615  -- 2^64 - 1
@@ -72,11 +73,33 @@ local function main()
     local ops_per_sec = NUM_ITERATIONS / (total_ms / 1000)
 
     -- Print results
-    print("\nResults:")
-    print("--------")
+    print("\nformatWithCommas Results:")
+    print("------------------------")
     print(string.format("Total benchmark time:  %.3f ms", total_ms))
     print(string.format("Average per operation: %.1f ns", avg_ns))
     print(string.format("Throughput: %.0f ops/sec", ops_per_sec))
+
+    -- numberToWords benchmark
+    print("\nRunning numberToWords benchmark...")
+
+    local words_start = get_time_ns()
+
+    for i = 1, NUM_ITERATIONS do
+        numberToWords(numbers[i])
+    end
+
+    local words_end = get_time_ns()
+    local words_elapsed_ns = words_end - words_start
+
+    local words_ms = words_elapsed_ns / 1e6
+    local words_avg_ns = words_elapsed_ns / NUM_ITERATIONS
+    local words_ops = NUM_ITERATIONS / (words_ms / 1000)
+
+    print("\nnumberToWords Results:")
+    print("---------------------")
+    print(string.format("Total benchmark time:  %.3f ms", words_ms))
+    print(string.format("Average per operation: %.1f ns", words_avg_ns))
+    print(string.format("Throughput: %.0f ops/sec", words_ops))
 end
 
 main()
