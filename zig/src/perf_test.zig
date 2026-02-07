@@ -31,7 +31,7 @@ pub fn main() !void {
 
     // Pre-generate all random number strings
     std.debug.print("Generating {d} random number strings...\n", .{NUM_ITERATIONS});
-    const gen_start = std.time.nanoTimestamp();
+    var gen_timer = try std.time.Timer.start();
 
     const num_strs = try allocator.alloc([20]u8, NUM_ITERATIONS);
     defer allocator.free(num_strs);
@@ -43,23 +43,21 @@ pub fn main() !void {
         len.* = @intCast(s.len);
     }
 
-    const gen_end = std.time.nanoTimestamp();
-    const gen_elapsed_ns: u64 = @intCast(gen_end - gen_start);
+    const gen_elapsed_ns = gen_timer.read();
     std.debug.print("Generation time: {d:.3} ms\n\n", .{@as(f64, @floatFromInt(gen_elapsed_ns)) / 1_000_000.0});
 
     var format_buf: [MAX_LEN]u8 = undefined;
 
     std.debug.print("Running formatting benchmark...\n", .{});
 
-    const bench_start = std.time.nanoTimestamp();
+    var bench_timer = try std.time.Timer.start();
 
     for (num_strs, num_lens) |*str_buf, len| {
         const result = formatWithCommas(str_buf[0..len], &format_buf) catch "";
         std.mem.doNotOptimizeAway(result.ptr);
     }
 
-    const bench_end = std.time.nanoTimestamp();
-    const total_elapsed_ns: u64 = @intCast(bench_end - bench_start);
+    const total_elapsed_ns = bench_timer.read();
 
     // Calculate statistics
     const total_ms: f64 = @as(f64, @floatFromInt(total_elapsed_ns)) / 1_000_000.0;
@@ -78,14 +76,13 @@ pub fn main() !void {
 
     std.debug.print("\nRunning numberToWords benchmark...\n", .{});
 
-    const words_start = std.time.nanoTimestamp();
+    var words_timer = try std.time.Timer.start();
 
     for (num_strs, num_lens) |*str_buf, len| {
         _ = numberToWords(str_buf[0..len], &words_buf) catch {};
     }
 
-    const words_end = std.time.nanoTimestamp();
-    const words_elapsed_ns: u64 = @intCast(words_end - words_start);
+    const words_elapsed_ns = words_timer.read();
 
     const words_ms: f64 = @as(f64, @floatFromInt(words_elapsed_ns)) / 1_000_000.0;
     const words_avg_ns: f64 = @as(f64, @floatFromInt(words_elapsed_ns)) / @as(f64, @floatFromInt(NUM_ITERATIONS));
