@@ -6,6 +6,13 @@ build:
 install:
 	make build && cp zig/zig-out/bin/commanum ~/.local/bin
 
+# TPS CLI
+build-tps:
+	cd tps && zig build --summary all
+
+install-tps:
+	make build-tps && cp tps/zig-out/bin/tps ~/.local/bin
+
 run-lua:
 	luajit lua/commanum.lua $(args) # args=1000
 
