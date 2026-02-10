@@ -17,12 +17,13 @@ const UnitOfTime = struct {
     unit: TimeUnit,
 
     fn toSeconds(self: UnitOfTime) f64 {
-        return self.multiplier * switch (self.unit) {
+        const factor: f64 = switch (self.unit) {
             .second => 1.0,
             .minute => 60.0,
             .hour => 3600.0,
             .day => 86400.0,
         };
+        return self.multiplier * factor;
     }
 };
 
